@@ -52,25 +52,25 @@ def load_csv(coin_list): #csv 데이터 로딩.
         data_sheet = pd.read_csv('data_csv/data_{}_KRW.csv'.format(coin), encoding='utf-8')
         history[coin] = data_sheet
     return history
-'''
-def iscurv_up(index, y, limit):
-    last = index
-    middle = index - limit//2
-    first = index - limit
 
-    left = [bool(y[i]-y[i+1]<0) for i in range(first,middle-1)]
-    right = [bool(y[i]-y[i+1]>0) for i in range(middle-1, last-1)]
+def softmax(x):
+    if x.ndim == 2:
+        x = x.T
+        x = x - np.max(x, axis=0)
+        y = np.exp(x) / np.sum(np.exp(x), axis=0)
+        return y.T
 
-    return bool(sum(left) + sum(right) == len(right) + len(left)) # True if 위로 볼록
+    x = x - np.max(x) # 오버플로 대책
+    return np.exp(x) / np.sum(np.exp(x))
 
-def iscurv_dn(index, y, limit): # 10, 6
-    last = index # 10
-    middle = index - limit//2 # 7
-    first = index - limit # 4
+def cross_entropy_error(y, t):
+    if y.ndim == 1:
+        t = t.reshape(1, t.size)
+        y = y.reshape(1, y.size)
 
-    left = [bool(y[i]-y[i+1]>0) for i in range(first,middle-1)] # 5 6
-    right = [bool(y[i]-y[i+1]<0) for i in range(middle-1, last-1)] # 7 8
+    # 훈련 데이터가 원-핫 벡터라면 정답 레이블의 인덱스로 반환
+    if t.size == y.size:
+        t = t.argmax(axis=1)
 
-    return bool(sum(left) + sum(right) == len(right) + len(left)) # True if 아래로 볼록
-'''
-
+    batch_size = y.shape[0]
+    return -np.sum(np.log(y[np.arange(batch_size), t] + 1e-7)) / batch_size

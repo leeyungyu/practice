@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import time
 import numpy as np
 import csv
-import myfunc as mf
+from Package.Func import *
 import pandas as pd
 # ---------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------
@@ -20,7 +20,6 @@ class Coin: # 코인 데이터를 크롤링 하는 class
         # 당신이 원하는 코인, 데이터포인트 개수, 시간간격을 정한다.
         # 나는 바이낸스를 쓰므로 바이낸스로 크롤링 할 것임.
         # status가 P이면 루프가 돌고, 다른 상태면 루프 종료
-        self.status = 'P' # 왜 P로 했는지 기억 안남. 그냥 하자.
         self.coin_lists = coin_lists
         self.history = {}
         self.limit = limit
@@ -28,20 +27,20 @@ class Coin: # 코인 데이터를 크롤링 하는 class
 
     def process(self):
 
-        eth_to_USD = np.array(mf.data_crawl('ETH', 'USDT', self.limit, self.aggregate).close) # 이더리움의 달러가격
+        eth_to_USD = np.array(data_crawl('ETH', 'USDT', self.limit, self.aggregate).close) # 이더리움의 달러가격
         print('Exchange rate data (ETH to USD) crawled')
-        exrate = np.array(mf.exchange_rate()) # 해당 객체의 환율데이터
+        exrate = np.array(exchange_rate()) # 해당 객체의 환율데이터
         print('Exchange rate data (USD to KRW) crawled')
 
         for index, coin in enumerate(self.coin_lists):
 
             try:
-                data_sheet = mf.data_crawl(coin, 'ETH', self.limit, self.aggregate) # 내 코인 정보 데이터시트 생성
+                data_sheet = data_crawl(coin, 'ETH', self.limit, self.aggregate) # 내 코인 정보 데이터시트 생성
                 price_to_ETH = np.array(data_sheet.close) # 내 코인의 이더리움 가격
                 convert_to_KRW = price_to_ETH * eth_to_USD * exrate # 한화로 변환
 
                 data_sheet['KRW'] = convert_to_KRW # 데이터시트에 추가
-                data_sheet = data_sheet[['timestamp', 'time', 'KRW', 'volumeto']] # 쓸모없는거 치우기
+
                 self.history[coin] = data_sheet # history에 저장
                 print('Coin data for {} crawled. {} of {}'.format(coin, index+1, len(self.coin_lists)))
 
@@ -60,7 +59,7 @@ class Coin: # 코인 데이터를 크롤링 하는 class
 
     def appending(self): # 데이터를 이어붙인다.
 
-        self.history = mf.load_csv(self.coin_lists)
+        self.history = load_csv(self.coin_lists)
 
         for index, coin in enumerate(self.coin_lists):
 
@@ -70,12 +69,12 @@ class Coin: # 코인 데이터를 크롤링 하는 class
 
             if n > 0:
 
-                new_sheet = mf.data_crawl(coin, 'ETH', n, 1)
+                new_sheet = data_crawl(coin, 'ETH', n, 1)
                 print('New data of {} crawled'.format(coin))
 
                 price_to_ETH = np.array(new_sheet.close)
-                eth_to_USD = np.array(mf.data_crawl('ETH','USDT', n, 1).close)
-                exrate = np.array(mf.exchange_rate())
+                eth_to_USD = np.array(data_crawl('ETH','USDT', n, 1).close)
+                exrate = np.array(exchange_rate())
 
                 new_sheet['KRW'] = np.array(new_sheet.close) * eth_to_USD * exrate
                 new_sheet = new_sheet[['timestamp', 'time', 'KRW', 'volumeto']].drop(new_sheet.index[[0]]) # 첫 데이터는 뺸다. 이미 있기 때문.
@@ -91,7 +90,7 @@ class Coin: # 코인 데이터를 크롤링 하는 class
     def save_graph(self):
         # 가격 그래프 저장
         # Coin().my_price()를 한 다음 Coin().save_graph()
-        self.history = mf.load_csv(self.coin_lists)
+        self.history = load_csv(self.coin_lists)
 
         for coin in self.coin_lists:
             ds = self.history[coin]
