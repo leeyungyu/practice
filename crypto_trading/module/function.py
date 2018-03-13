@@ -15,7 +15,7 @@ def data_crawl(a, b, c, d): # 과거 데이터를 크롤링한다.
     data = page.json()['Data']
     df = pd.DataFrame(data)
     df['timestamp'] = [datetime.datetime.fromtimestamp(d) for d in df.time]
-    df = df[['timestamp', 'time', 'close', 'volumeto']]
+    #df = df[['timestamp', 'time', 'close', 'volumeto']]
     return df
 
 def exchange_rate(): # 네이버 검색결과로 환율정보 크롤링

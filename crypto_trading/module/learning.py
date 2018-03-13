@@ -1,4 +1,4 @@
-from Func import *
+from .function import *
 from collections import OrderedDict as OD
 import numpy as np
 
