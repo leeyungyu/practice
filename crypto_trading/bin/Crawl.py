@@ -1,8 +1,15 @@
+# 파일명 : Coin.py
+# 제작자 : 이윤규
+# 설 명 : 코인 정보 크롤링 및 전처리
+# ------ Coin().data_crawl(coin_lists)
+# ------ Coin().appending()
+# ------ Coin().save_graph()
+
 import matplotlib.pyplot as plt
 import time
 import numpy as np
 import csv
-from module.function import *
+from module.funcion import *
 import pandas as pd
 # ---------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------
@@ -20,10 +27,19 @@ class Coin: # 코인 데이터를 크롤링 하는 class
 
     def process(self):
 
+        eth_to_USD = np.array(data_crawl('ETH', 'USDT', self.limit, self.aggregate).close) # 이더리움의 달러가격
+        print('Exchange rate data (ETH to USD) crawled')
+        exrate = np.array(exchange_rate()) # 해당 객체의 환율데이터
+        print('Exchange rate data (USD to KRW) crawled')
+
         for index, coin in enumerate(self.coin_lists):
 
             try:
                 data_sheet = data_crawl(coin, 'ETH', self.limit, self.aggregate) # 내 코인 정보 데이터시트 생성
+                price_to_ETH = np.array(data_sheet.close) # 내 코인의 이더리움 가격
+                convert_to_KRW = price_to_ETH * eth_to_USD * exrate # 한화로 변환
+
+                data_sheet['KRW'] = convert_to_KRW # 데이터시트에 추가
 
                 self.history[coin] = data_sheet # history에 저장
                 print('Coin data for {} crawled. {} of {}'.format(coin, index+1, len(self.coin_lists)))
@@ -56,7 +72,13 @@ class Coin: # 코인 데이터를 크롤링 하는 class
                 new_sheet = data_crawl(coin, 'ETH', n, 1)
                 print('New data of {} crawled'.format(coin))
 
-                new_sheet.drop(new_sheet.index[[0]]) # 첫 데이터는 뺸다. 이미 있기 때문.
+                price_to_ETH = np.array(new_sheet.close)
+                eth_to_USD = np.array(data_crawl('ETH','USDT', n, 1).close)
+                exrate = np.array(exchange_rate())
+
+                new_sheet['KRW'] = np.array(new_sheet.close) * eth_to_USD * exrate
+                new_sheet = new_sheet[['timestamp', 'time', 'KRW', 'volumeto']].drop(new_sheet.index[[0]]) # 첫 데이터는 뺸다. 이미 있기 때문.
+
                 refreshed_sheet = pd.concat([data_sheet, new_sheet]).drop(['Unnamed: 0'], axis = 1) # 새로 생기는 인덱스 삭제
                 print('New data for {} appended to databse(csv).'.format(coin))
 
@@ -79,4 +101,6 @@ class Coin: # 코인 데이터를 크롤링 하는 class
             plt.title('{}'.format(coin))
             plt.gcf().savefig('data_graph/graph_{}_KRW.jpg'.format(coin))
             plt.close()
+
+
 

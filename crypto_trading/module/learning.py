@@ -62,8 +62,8 @@ class Relu:
 class Learning:
     def __init__(self, insize, hidsize, outsize, weight = 0.01):
         self.params = {}
-        self.params['W1'] = weight * np.random.randn(insize, hidsize) / np.sqrt(2/insize) # He initial W
-        self.params['W2'] = weight * np.random.randn(hidsize, outsize) / np.sqrt(2/hidsize)
+        self.params['W1'] = weight * np.sqrt(2) * np.random.randn(insize, hidsize) / np.sqrt(insize) # He initial W
+        self.params['W2'] = weight * np.sqrt(2) * np.random.randn(hidsize, outsize) / np.sqrt(hidsize)
         self.params['b1'] = weight * np.zeros(hidsize)
         self.params['b2'] = weight * np.zeros(outsize)
 
